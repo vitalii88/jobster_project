@@ -1,4 +1,10 @@
 /node_modules/
+/server/node_modules/
+/client/node_modules/
+/client/build/
+/server/.env
+/client/.env
 .idea
 commitlint.config.js
 .husky
+.DS_STORE
