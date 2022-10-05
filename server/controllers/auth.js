@@ -43,3 +43,32 @@ export const login = async (req, resp) => {
   });
 };
 
+export const updateUser = async (req, resp) => {
+  const { name, email, lastName, location } = req.body;
+  const userId = req.user.userId;
+
+  if (!name || !email || !lastName || !location) {
+    throw new BadRequestError('Please provide all values');
+  }
+  const user = await UserSchema.findOne({ _id: userId });
+  user.name = name;
+  user.email = email;
+  user.lastName = lastName;
+  user.location = location;
+
+  await user.save();
+
+  const token = user.createJWT();
+
+  resp.status(StatusCodes.OK).json({
+    user: {
+      name: user.name,
+      email: user.email,
+      lastName: user.lastName,
+      location: user.location,
+      token,
+    },
+  });
+
+}
+
