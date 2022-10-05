@@ -8,9 +8,12 @@ export const register = async (req, resp) => {
 
   resp.status(StatusCodes.CREATED).json({
     user: {
+      email: user.email,
+      lastName: user.lastName,
+      location: user.location,
       name: user.name,
+      token,
     },
-    token,
   });
 };
 
@@ -31,9 +34,12 @@ export const login = async (req, resp) => {
   const token = user.createJWT();
   resp.status(StatusCodes.OK).json({
     user: {
+      email: user.email,
+      lastName: user.lastName,
+      location: user.location,
       name: user.name,
+      token,
     },
-    token,
   });
 };
 
