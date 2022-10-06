@@ -3,6 +3,8 @@ import { StatusCodes } from 'http-status-codes';
 import { BadRequestError, NotFoundError } from '../errors/index.js';
 
 export const getAllJobs = async (req, resp) => {
+  console.log('req.query: ', req.query);
+
   const jobs = await Job.find({ createdBy: req.user.userId }).sort('createdAt');
   resp.status(StatusCodes.OK).json({ jobs, count: jobs.length });
 };
