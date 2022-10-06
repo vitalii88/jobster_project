@@ -2,11 +2,54 @@ import Job from '../models/Job.js';
 import { StatusCodes } from 'http-status-codes';
 import { BadRequestError, NotFoundError } from '../errors/index.js';
 
+const getSortType = (value) => {
+  switch (value) {
+    case 'latest': {
+      return '-createdAt';
+    }
+    case 'oldest': {
+      return 'createdAt';
+    }
+    case 'a-z': {
+      return 'position';
+    }
+    case 'z-a': {
+      return '-position';
+    }
+    default: {
+      throw new NotFoundError('not found this sort params');
+    }
+  }
+}
+
 export const getAllJobs = async (req, resp) => {
   console.log('req.query: ', req.query);
+  const { status, jobType, sort, page, search } = req.query;
 
-  const jobs = await Job.find({ createdBy: req.user.userId }).sort('createdAt');
-  resp.status(StatusCodes.OK).json({ jobs, count: jobs.length });
+  const queryObject = {
+    createdBy: req.user.userId,
+  };
+
+  if (search) {
+    queryObject.position = {
+      $regex: search,
+      $options: 'i',
+    };
+  }
+  if (status && status !== 'all') {
+    queryObject.status = status;
+  }
+  if (jobType && jobType !== 'all') {
+    queryObject.jobType = jobType;
+  }
+
+  let result = Job.find(queryObject);
+
+  const sortType = getSortType(sort);
+  result.sort(sortType);
+
+  const jobs = await result;
+  resp.status(StatusCodes.OK).json({ jobs });
 };
 
 export const getJod = async (req, resp) => {
