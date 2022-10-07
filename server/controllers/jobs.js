@@ -131,8 +131,6 @@ export const showStats = async (req, resp) => {
     { $group: { _id: '$status', count: { $sum: 1 } } },
   ]);
 
-  console.log('stats1: ', stats);
-
     stats = stats.reduce((acc, current) => {
       const { _id: title, count} = current;
       acc[title] = count;
@@ -144,8 +142,7 @@ export const showStats = async (req, resp) => {
       pending: stats.pending || 0,
       interview: stats.interview || 0,
     }
-  console.log('stats2: ', stats);
-  console.log('defaultStats: ', defaultStats);
+
   resp.status(StatusCodes.OK).json({
     defaultStats,
     monthlyApplications: []
