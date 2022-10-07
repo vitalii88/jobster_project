@@ -11,10 +11,13 @@ const authMiddleware = async (req, resp, next) => {
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
 
-    const user = UserSchema.findById(payload.id).select('-password');
-    req.user = user;
+    const demoUser = payload.userId === process.env.DEMO_USER_ID
 
-    req.user = { userId: payload.userId, name: payload.name };
+    // const user = UserSchema.findById(payload.id).select('-password');
+    // req.user = user;
+
+    // req.user = { userId: payload.userId, name: payload.name };
+    req.user = { userId: payload.userId, demoUser};
     next();
   } catch (error) {
     throw new AuthenticatedError('Authentication invalid');
