@@ -123,3 +123,12 @@ export const deleteJod = async (req, resp) => {
   resp.status(StatusCodes.OK).send();
 };
 
+export const showStats = async (req, resp) => {
+
+  resp.status(StatusCodes.OK).json({
+    defaultStats: {},
+    monthlyApplications: []
+  });
+
+};
+

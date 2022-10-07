@@ -8,6 +8,9 @@ router.route('/')
   .post(demoUser, jodsController.createJob)
   .get(jodsController.getAllJobs);
 
+router.route('/stats')
+  .get(jodsController.showStats);
+
 router.route('/:id')
   .get(jodsController.getJod)
   .delete(demoUser, jodsController.deleteJod)
