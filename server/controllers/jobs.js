@@ -22,7 +22,7 @@ const getSortType = (value) => {
       throw new NotFoundError('not found this sort params');
     }
   }
-}
+};
 
 export const getAllJobs = async (req, resp) => {
   const { status, jobType, sort, search } = req.query;
@@ -75,13 +75,14 @@ export const getJod = async (req, resp) => {
     throw new NotFoundError(`Not foun job from id:  ${jobId}`);
   }
   resp.status(StatusCodes.OK).json({ job });
-
 };
+
 export const createJob = async (req, resp) => {
   req.body.createdBy = req.user.userId;
   const job = await JobShcema.create(req.body);
   resp.status(StatusCodes.CREATED).json({ job });
 };
+
 export const updateJob = async (req, resp) => {
   const {
     body: { company, position },
@@ -143,10 +144,24 @@ export const showStats = async (req, resp) => {
       interview: stats.interview || 0,
     }
 
+    let monthlyApplications = await JobShcema.aggregate([
+      { $match: { createdBy: mongoose.Types.ObjectId(userId) } },
+      { $group: {
+        _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
+        count: { $sum: 1 },
+      } },
+      { $sort: { '_id.year': -1, '_id.month': -1 } },
+      { $limit: 12 },
+    ]);
+
+    monthlyApplications = monthlyApplications.map((item) => {
+      const { _id: { year, month }, count } = item;
+      const date = moment().month(month - 1).year(year).format('MMM Y');
+      return { date, count };
+    }).reverse();
+
   resp.status(StatusCodes.OK).json({
     defaultStats,
-    monthlyApplications: []
+    monthlyApplications,
   });
-
 };
-
