@@ -1,7 +1,8 @@
-import Job from '../models/Job.js';
+import mongoose from 'mongoose';
+import moment from 'moment';
+import JobShcema from '../models/Job.js';
 import { StatusCodes } from 'http-status-codes';
 import { BadRequestError, NotFoundError } from '../errors/index.js';
-import JobShcema from '../models/Job.js';
 
 const getSortType = (value) => {
   switch (value) {
@@ -43,7 +44,7 @@ export const getAllJobs = async (req, resp) => {
     queryObject.jobType = jobType;
   }
 
-  let result = Job.find(queryObject);
+  let result = JobShcema.find(queryObject);
 
   const sortType = getSortType(sort);
   result.sort(sortType);
@@ -66,7 +67,7 @@ export const getJod = async (req, resp) => {
     user: { userId },
     params: { id: jobId}
   } = req;
-  const job = await Job.findOne({
+  const job = await JobShcema.findOne({
     _id: jobId,
     createdBy: userId,
   });
@@ -78,7 +79,7 @@ export const getJod = async (req, resp) => {
 };
 export const createJob = async (req, resp) => {
   req.body.createdBy = req.user.userId;
-  const job = await Job.create(req.body);
+  const job = await JobShcema.create(req.body);
   resp.status(StatusCodes.CREATED).json({ job });
 };
 export const updateJob = async (req, resp) => {
@@ -92,7 +93,7 @@ export const updateJob = async (req, resp) => {
     throw new BadRequestError('Company or position fields cannot be empty');
   }
 
-  const job = await Job.findByIdAndUpdate(
+  const job = await JobShcema.findByIdAndUpdate(
     { _id: jobId, createdBy: userId },
     req.body,
     { new: true, runValidators: true },
@@ -111,7 +112,7 @@ export const deleteJod = async (req, resp) => {
     params: { id: jobId}
   } = req;
 
-  const job = await Job.findOneAndRemove({
+  const job = await JobShcema.findOneAndRemove({
     _id: jobId,
     createdBy: userId,
   });
@@ -124,9 +125,29 @@ export const deleteJod = async (req, resp) => {
 };
 
 export const showStats = async (req, resp) => {
+  const { userId } = req.user;
+  let stats = await JobShcema.aggregate([
+    { $match: { createdBy: mongoose.Types.ObjectId(userId) } },
+    { $group: { _id: '$status', count: { $sum: 1 } } },
+  ]);
 
+  console.log('stats1: ', stats);
+
+    stats = stats.reduce((acc, current) => {
+      const { _id: title, count} = current;
+      acc[title] = count;
+      return acc;
+    }, {});
+
+    const defaultStats = {
+      declined: stats.declined || 0,
+      pending: stats.pending || 0,
+      interview: stats.interview || 0,
+    }
+  console.log('stats2: ', stats);
+  console.log('defaultStats: ', defaultStats);
   resp.status(StatusCodes.OK).json({
-    defaultStats: {},
+    defaultStats,
     monthlyApplications: []
   });
 
